@@ -1,12 +1,16 @@
+import uuid
+
+from flask import Blueprint, current_app, g, jsonify, request
 
 from alerta.app import alarm_model, custom_webhooks
 from alerta.exceptions import ApiError
 from alerta.utils.response import absolute_url
-from flask import Blueprint, request, jsonify, current_app
+
+from . import (alerts, blackouts, customers, groups, heartbeats, keys,  # noqa
+               oembed, permissions, users)
 
 api = Blueprint('api', __name__)
 
-from . import alerts, blackouts, customers, groups, heartbeats, keys, permissions, users, oembed  # noqa
 
 try:
     from . import bulk  # noqa
@@ -18,6 +22,15 @@ except ImportError:
 def before_request():
     if request.method in ['POST', 'PUT'] and not request.is_json:
         raise ApiError("POST and PUT requests must set 'Content-type' to 'application/json'", 415)
+
+    g.request_id = request.headers.get('X-Request-ID') or request.headers.get('X-Amzn-Trace-Id') or str(uuid.uuid4())
+
+
+@api.after_request
+def after_request(response):
+    if hasattr(g, 'request_id'):
+        response.headers['X-Request-ID'] = g.request_id
+    return response
 
 
 @api.route('/', methods=['OPTIONS', 'GET'])

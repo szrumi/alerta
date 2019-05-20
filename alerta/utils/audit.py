@@ -1,11 +1,10 @@
 import json
 from datetime import datetime
 from typing import Any, List
-from uuid import uuid4
 
 import blinker
 import requests
-from flask import Flask
+from flask import Flask, g
 
 from alerta.utils.format import CustomJSONEncoder
 
@@ -19,7 +18,7 @@ auth_audit_trail = audit_signals.signal('auth')
 
 class AuditTrail:
 
-    def __init__(self, app: Flask=None) -> None:
+    def __init__(self, app: Flask = None) -> None:
         self.app = app
         if app is not None:
             self.init_app(app)
@@ -80,7 +79,7 @@ class AuditTrail:
     def _fmt(category: str, event: str, message: str, user: str, customers: List[str], scopes: List[str],
              resource_id: str, type: str, request: Any, **extra: Any) -> str:
         return json.dumps({
-            'id': str(uuid4()),
+            'id': g.request_id,
             '@timestamp': datetime.utcnow(),
             'event': event,
             'category': category,

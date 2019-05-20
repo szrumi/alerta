@@ -107,6 +107,7 @@ class RequestFilter(logging.Filter):
 
     def filter(self, record):
         if flask.has_request_context():
+            record.request_id = g.request_id if hasattr(g, 'request_id') else None
             record.endpoint = request.endpoint
             record.method = request.method
             record.url = request.url
@@ -125,8 +126,8 @@ class RequestFilter(logging.Filter):
 class JSONFormatter(logging.Formatter):
 
     RECORD_ATTRS = [
-        'name', 'levelno', 'levelname', 'pathname', 'filename', 'module', 'lineno',
-        'funcName', 'created', 'thread', 'threadName', 'process',  # 'message',
+        'request_id', 'name', 'levelno', 'levelname', 'pathname', 'filename', 'module',
+        'lineno', 'funcName', 'created', 'thread', 'threadName', 'process',  # 'message',
         'endpoint', 'method', 'url', 'reqargs', 'data', 'remote_addr', 'user'
     ]
 
